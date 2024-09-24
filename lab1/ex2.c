@@ -3,36 +3,38 @@
 #include <stdlib.h>
 #include <float.h>
 
-#define MAX_ITERATIONS 1000
-#define M_PI 3.14159265358979323846
+#define MAX_ITERATIONS 1000000
+#define MAX_ITERATIONS_FAC 47
 
-// Function to calculate e using limit
 double calculate_e_limit(double epsilon)
 {
     if (epsilon <= 0)
     {
-        return -1.0; // Indicate error for invalid epsilon
+        return -1.0;
     }
     double e = 0.0;
-    double prev_e = -1.0; // Initialize with a different value
+    double prev_e = -1.0;
     int n = 1;
 
     while (fabs(e - prev_e) > epsilon && n < INT_MAX)
     {
         prev_e = e;
         e = pow(1.0 + (1.0 / n), n);
+        if (n == INT_MAX)
+        {
+            return -1.0;
+        }
         n++;
     }
 
     return e;
 }
 
-// Function to calculate e using series
 double calculate_e_series(double epsilon)
 {
     if (epsilon <= 0)
     {
-        return -1.0; // Indicate error for invalid epsilon
+        return -1.0;
     }
     double e = 0.0;
     double term = 1.0;
@@ -48,38 +50,38 @@ double calculate_e_series(double epsilon)
     return e;
 }
 
-// Function to calculate pi using limit
 double calculate_pi_limit(double epsilon)
 {
     if (epsilon <= 0)
     {
-        return -1.0; // Indicate error for invalid epsilon
+        return -1.0;
     }
-    double pi = 0.0;
-    double prev_pi = -1.0;
-    int k = 0;
 
-    while (fabs(pi - prev_pi) > epsilon && k < MAX_ITERATIONS)
+    double pi_approx = 0.0;
+    int n = 1;
+
+    while (1)
     {
-        prev_pi = pi;
-        double term = (1.0 / pow(16, k)) *
-                      ((4.0 / (8 * k + 1)) -
-                       (2.0 / (8 * k + 4)) -
-                       (1.0 / (8 * k + 5)) -
-                       (1.0 / (8 * k + 6)));
-        pi += term;
-        k++;
-    }
+        double prev_pi_approx = pi_approx;
 
-    return pi;
+        double numerator = pow(pow(2.0, n) * tgamma(n + 1), 4);
+        double denominator = n * pow(tgamma(2 * n + 1), 2);
+
+        pi_approx = numerator / denominator;
+
+        if (fabs(pi_approx - prev_pi_approx) < epsilon || n > MAX_ITERATIONS_FAC)
+        {
+            return pi_approx;
+        }
+        n++;
+    }
 }
 
-// Function to calculate pi using series
 double calculate_pi_series(double epsilon)
 {
     if (epsilon <= 0)
     {
-        return -1.0; // Indicate error for invalid epsilon
+        return -1.0;
     }
     double pi = 0.0;
     double term = 0.0;
@@ -95,12 +97,11 @@ double calculate_pi_series(double epsilon)
     return pi;
 }
 
-// Function to calculate ln(2) using limit
 double calculate_ln2_limit(double epsilon)
 {
     if (epsilon <= 0)
     {
-        return -1.0; // Indicate error for invalid epsilon
+        return -1.0;
     }
     double ln2 = 0.0;
     double prev_ln2 = -1.0;
@@ -116,12 +117,11 @@ double calculate_ln2_limit(double epsilon)
     return ln2;
 }
 
-// Function to calculate ln(2) using series
 double calculate_ln2_series(double epsilon)
 {
     if (epsilon <= 0)
     {
-        return -1.0; // Indicate error for invalid epsilon
+        return -1.0;
     }
     double ln2 = 0.0;
     double term = 0.0;
@@ -137,12 +137,11 @@ double calculate_ln2_series(double epsilon)
     return ln2;
 }
 
-// Function to calculate sqrt(2) using limit
 double calculate_sqrt2_limit(double epsilon)
 {
     if (epsilon <= 0)
     {
-        return -1.0; // Indicate error for invalid epsilon
+        return -1.0;
     }
     double x = -0.5;
     double next_x;
@@ -160,39 +159,42 @@ double calculate_sqrt2_limit(double epsilon)
     return next_x;
 }
 
-// Function to calculate sqrt(2) using Newton's method
-double calculate_sqrt2_newton(double epsilon)
+double calculate_sqrt2_formula(double epsilon)
 {
     if (epsilon <= 0)
     {
-        return -1.0; // Indicate error for invalid epsilon
+        return -1.0;
     }
-    double x = 1.0; // Initial guess
 
-    while (fabs(x * x - 2.0) > epsilon)
+    double result = 1.0;
+    int k = 2;
+    double term;
+
+    while ((fabs(result - term) > epsilon) && k < INT_MAX)
     {
-        x = x - (x * x - 2.0) / (2.0 * x);
+        term = result;
+        result *= pow(2.0, pow(2.0, -k));
+        k++;
     }
 
-    return x;
+    return result;
 }
 
-// Function to solve equations using the bisection method
 double bisection_method(double (*f)(double), double a, double b, double epsilon)
 {
     if (epsilon <= 0)
     {
-        return -1.0; // Indicate error for invalid epsilon
+        return -1.0;
     }
     if (f(a) * f(b) >= 0)
     {
-        return NAN; // Indicate error: f(a) and f(b) must have opposite signs
+        return NAN;
     }
 
     double c;
     int iterations = 0;
 
-    while (fabs(b - a) > epsilon && iterations < MAX_ITERATIONS)
+    while (fabs(b - a) > epsilon && iterations < INT_MAX)
     {
         c = (a + b) / 2.0;
         if (f(c) * f(a) < 0)
@@ -206,15 +208,14 @@ double bisection_method(double (*f)(double), double a, double b, double epsilon)
         iterations++;
     }
 
-    if (iterations >= MAX_ITERATIONS)
+    if (iterations >= INT_MAX)
     {
-        return NAN; // Indicate error: max iterations reached
+        return NAN;
     }
 
     return c;
 }
 
-// Functions for equations (to be used with bisection_method)
 double equation_ln_x(double x)
 {
     return log(x) - 1.0;
@@ -235,25 +236,25 @@ double equation_e_pow_x(double x)
     return exp(x) - 2.0;
 }
 
-// Function for equation sqrt(2) (to be used with bisection_method)
 double equation_sqrt2(double x)
 {
     return x * x - 2.0;
 }
 
-double calculate_gamma_comb(int m_max)
+double calculate_gamma_comb(int m)
 {
-    double gamma = 0.0;
-    for (int k = 1; k <= m_max; k++)
+    double sum = 0.0;
+    for (int k = 1; k <= m; k++)
     {
-        double term = pow(-1, k) * log(tgamma(k + 1)) / k;
-        if (isnan(term) || isinf(term)) // Проверка на NaN или бесконечность
+        double binomial_coefficient = tgamma(m + 1) / (tgamma(k + 1) * tgamma(m - k + 1));
+        double term = binomial_coefficient * pow(-1, k) * lgamma(k + 1) / k;
+        if (isnan(term) || isinf(term))
         {
-            continue; // Пропускаем невалидные значения
+            return -1;
         }
-        gamma += term;
+        sum += term;
     }
-    return gamma;
+    return sum;
 }
 
 double calculate_gamma_sqrt_sum(int k_max)
@@ -267,6 +268,18 @@ double calculate_gamma_sqrt_sum(int k_max)
     return gamma;
 }
 
+int is_prime(int num)
+{
+    if (num < 2)
+        return 0;
+    for (int i = 2; i <= sqrt(num); i++)
+    {
+        if (num % i == 0)
+            return 0;
+    }
+    return 1;
+}
+
 double calculate_gamma_prime_product(int t_max)
 {
     double product = 1.0;
@@ -278,18 +291,6 @@ double calculate_gamma_prime_product(int t_max)
         }
     }
     return exp(-product);
-}
-
-int is_prime(int num)
-{
-    if (num < 2)
-        return 0;
-    for (int i = 2; i <= sqrt(num); i++)
-    {
-        if (num % i == 0)
-            return 0;
-    }
-    return 1;
 }
 
 int main(int argc, char *argv[])
@@ -347,7 +348,7 @@ int main(int argc, char *argv[])
     }
 
     printf("sqrt(2) (limit): %.10f\n", calculate_sqrt2_limit(epsilon));
-    printf("sqrt(2) (Newton's): %.10f\n", calculate_sqrt2_newton(epsilon));
+    printf("sqrt(2) (formula): %.10f\n", calculate_sqrt2_formula(epsilon));
     double sqrt2_bisection = bisection_method(equation_sqrt2, 1.0, 2.0, epsilon);
     if (isnan(sqrt2_bisection))
     {
@@ -358,9 +359,12 @@ int main(int argc, char *argv[])
         printf("sqrt(2) (bisection): %.10f\n", sqrt2_bisection);
     }
 
-    printf("Gamma (combinatorial): %.10f\n", calculate_gamma_comb(1000));
-    printf("Gamma (sqrt sum): %.10f\n", calculate_gamma_sqrt_sum(1000));
-    printf("Gamma (prime product): %.10f\n", calculate_gamma_prime_product(1000));
+    printf("Gamma (combinatorial): %.10f\n", calculate_gamma_comb(MAX_ITERATIONS_FAC));
+    printf("Gamma (sqrt sum): %.10f\n", calculate_gamma_sqrt_sum(MAX_ITERATIONS));
+    printf("Gamma (prime product): %.10f\n", calculate_gamma_prime_product(MAX_ITERATIONS));
 
     return 0;
 }
+
+// gcc ex2.c -o ex2
+// ./ex2.exe 0.00001
