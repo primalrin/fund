@@ -101,14 +101,13 @@ int process_r(const char *file1_path, const char *file2_path, const char *output
     return 0;
 }
 
-// Helper function for base conversion
 void to_base(char *lexeme, int base)
 {
-    char new_lexeme[MAX_LEXEME_LENGTH * 4] = {0}; // Increased size for longer base representations
+    char new_lexeme[MAX_LEXEME_LENGTH * 4] = {0};
     char *ptr = new_lexeme;
     for (int i = 0; lexeme[i] != '\0'; i++)
     {
-        char buffer[10]; // Buffer to hold converted number
+        char buffer[10];
         sprintf(buffer, (base == 4) ? "%03o" : "%03o", lexeme[i]);
         strcat(ptr, buffer);
         ptr += strlen(buffer);
@@ -118,14 +117,67 @@ void to_base(char *lexeme, int base)
 
 int process_a(const char *input_path, const char *output_path)
 {
-    // Implementation for -a flag (similar structure to process_r)
-    // ...
+    FILE *input = fopen(input_path, "r");
+    if (!input)
+    {
+        perror("Error opening input file");
+        return -1;
+    }
+    FILE *output = fopen(output_path, "w");
+    if (!output)
+    {
+        fclose(input);
+        perror("Error opening output file");
+        return -1;
+    }
+
+    char lexeme[MAX_LEXEME_LENGTH];
+    int eof = 0;
+    int i = 1;
+
+    while (!eof)
+    {
+        eof = read_lexeme(input, lexeme);
+        if (!eof)
+        {
+            if ((i % 10 == 0))
+            {
+                for (int j = 0; lexeme[j] != '\0'; j++)
+                {
+                    lexeme[j] = tolower(lexeme[j]);
+                }
+                to_base(lexeme, 4);
+            }
+            else if (i % 2 == 0 && i % 10 != 0)
+            {
+                for (int j = 0; lexeme[j] != '\0'; j++)
+                {
+                    lexeme[j] = tolower(lexeme[j]);
+                }
+            }
+            else if (i % 5 == 0 && i % 10 != 0)
+            {
+                to_base(lexeme, 8);
+            }
+            if (write_lexeme(output, lexeme) < 0)
+            {
+                fclose(input);
+                fclose(output);
+                perror("Error writing to output file");
+                return -1;
+            }
+            i++;
+        }
+    }
+
+    fclose(input);
+    fclose(output);
     return 0;
 }
 
 int main(int argc, char *argv[])
 {
-    if (argc < 5)
+    if (argc < 4)
     {
         fprintf(stderr, "Insufficient arguments\n");
         return -1;
@@ -133,21 +185,21 @@ int main(int argc, char *argv[])
 
     if (strcmp(argv[1], "-r") == 0)
     {
-        if (argc != 6)
+        if (argc != 5)
         {
             fprintf(stderr, "Incorrect number of arguments for -r flag\n");
             return -1;
         }
-        return process_r(argv[3], argv[4], argv[5]);
+        return process_r(argv[2], argv[3], argv[4]);
     }
     else if (strcmp(argv[1], "-a") == 0)
     {
-        if (argc != 5)
+        if (argc != 4)
         {
             fprintf(stderr, "Incorrect number of arguments for -a flag\n");
             return -1;
         }
-        return process_a(argv[3], argv[4]);
+        return process_a(argv[2], argv[3]);
     }
     else
     {
@@ -155,3 +207,8 @@ int main(int argc, char *argv[])
         return -1;
     }
 }
+
+// gcc ex7.c -o ex7
+
+// ./ex7.exe -r input1.txt input2.txt output.txt
+// ./ex7.exe -a input.txt output.txt

@@ -3,13 +3,20 @@
 #include <string.h>
 #include <math.h>
 
-#define EPSILON_DEFAULT 1e-6
+enum quadratic_equation_result
+{
+    NO_ROOTS = 0,
+    ONE_ROOT = 1,
+    TWO_ROOTS = 2,
+    LINEAR_EQUATION = 3,
+    INVALID_INPUT = -1
+};
 
-int solve_quadratic_equation(double a, double b, double c, double epsilon, double *x1, double *x2);
+enum quadratic_equation_result solve_quadratic_equation(double a, double b, double c, double epsilon, double *x1, double *x2);
 int check_multiple(int num1, int num2);
 int check_right_triangle(double a, double b, double c, double epsilon);
 
-int main(int argc, char *argv[])
+int main(int argc, const char *argv[])
 {
     if (argc < 2)
     {
@@ -24,31 +31,28 @@ int main(int argc, char *argv[])
             fprintf(stderr, "Error: Incorrect number of arguments for -q flag.\n");
             return 1;
         }
-        double epsilon, a, b, c;
-        char *endptr;
 
-        epsilon = strtod(argv[2], &endptr);
-        if (*endptr != '\0')
+        char *endptr;
+        double epsilon = strtod(argv[2], &endptr);
+        if (*endptr != '\0' || epsilon <= 0)
         {
             fprintf(stderr, "Invalid epsilon value: %s\n", argv[2]);
             return 1;
         }
 
-        a = strtod(argv[3], &endptr);
+        double a = strtod(argv[3], &endptr);
         if (*endptr != '\0')
         {
             fprintf(stderr, "Invalid coefficient 'a' value: %s\n", argv[3]);
             return 1;
         }
-
-        b = strtod(argv[4], &endptr);
+        double b = strtod(argv[4], &endptr);
         if (*endptr != '\0')
         {
             fprintf(stderr, "Invalid coefficient 'b' value: %s\n", argv[4]);
             return 1;
         }
-
-        c = strtod(argv[5], &endptr);
+        double c = strtod(argv[5], &endptr);
         if (*endptr != '\0')
         {
             fprintf(stderr, "Invalid coefficient 'c' value: %s\n", argv[5]);
@@ -56,12 +60,27 @@ int main(int argc, char *argv[])
         }
 
         double x1, x2;
-        solve_quadratic_equation(a, b, c, epsilon, &x1, &x2);
-        solve_quadratic_equation(a, c, b, epsilon, &x1, &x2);
-        solve_quadratic_equation(b, a, c, epsilon, &x1, &x2);
-        solve_quadratic_equation(b, c, a, epsilon, &x1, &x2);
-        solve_quadratic_equation(c, a, b, epsilon, &x1, &x2);
-        solve_quadratic_equation(c, b, a, epsilon, &x1, &x2);
+        double coeffs[3] = {a, b, c};
+
+        for (int i = 0; i < 3; ++i)
+        {
+            for (int j = 0; j < 3; ++j)
+            {
+                if (i == j)
+                    continue;
+                for (int k = 0; k < 3; ++k)
+                {
+                    if (k == i || k == j)
+                        continue;
+
+                    enum quadratic_equation_result result = solve_quadratic_equation(coeffs[i], coeffs[j], coeffs[k], epsilon, &x1, &x2);
+                    if (result == INVALID_INPUT)
+                    {
+                        fprintf(stderr, "Error solving quadratic equation.\n");
+                    }
+                }
+            }
+        }
     }
     else if (strcmp(argv[1], "-m") == 0)
     {
@@ -91,37 +110,36 @@ int main(int argc, char *argv[])
     }
     else if (strcmp(argv[1], "-t") == 0)
     {
-        if (argc != 5)
+        if (argc != 6)
         {
             fprintf(stderr, "Error: Incorrect number of arguments for -t flag.\n");
             return 1;
         }
-        double epsilon, a, b, c;
-        char *endptr;
 
-        epsilon = strtod(argv[2], &endptr);
-        if (*endptr != '\0')
+        char *endptr;
+        double epsilon = strtod(argv[2], &endptr);
+        if (*endptr != '\0' || epsilon <= 0)
         {
             fprintf(stderr, "Invalid epsilon value: %s\n", argv[2]);
             return 1;
         }
 
-        a = strtod(argv[3], &endptr);
-        if (*endptr != '\0')
+        double a = strtod(argv[3], &endptr);
+        if (*endptr != '\0' || a <= 0)
         {
             fprintf(stderr, "Invalid side 'a' value: %s\n", argv[3]);
             return 1;
         }
 
-        b = strtod(argv[4], &endptr);
-        if (*endptr != '\0')
+        double b = strtod(argv[4], &endptr);
+        if (*endptr != '\0' || b <= 0)
         {
             fprintf(stderr, "Invalid side 'b' value: %s\n", argv[4]);
             return 1;
         }
 
-        c = strtod(argv[5], &endptr);
-        if (*endptr != '\0')
+        double c = strtod(argv[5], &endptr);
+        if (*endptr != '\0' || c <= 0)
         {
             fprintf(stderr, "Invalid side 'c' value: %s\n", argv[5]);
             return 1;
@@ -145,20 +163,19 @@ int main(int argc, char *argv[])
     return 0;
 }
 
-int solve_quadratic_equation(double a, double b, double c, double epsilon, double *x1, double *x2)
+enum quadratic_equation_result solve_quadratic_equation(double a, double b, double c, double epsilon, double *x1, double *x2)
 {
-
     if (fabs(a) < epsilon)
     {
         if (fabs(b) < epsilon)
         {
-            return -1;
+            return INVALID_INPUT;
         }
         else
         {
             *x1 = -c / b;
             printf("x = %.6f\n", *x1);
-            return 1;
+            return LINEAR_EQUATION;
         }
     }
     else
@@ -169,17 +186,18 @@ int solve_quadratic_equation(double a, double b, double c, double epsilon, doubl
             *x1 = (-b + sqrt(discriminant)) / (2 * a);
             *x2 = (-b - sqrt(discriminant)) / (2 * a);
             printf("x1 = %.6f, x2 = %.6f\n", *x1, *x2);
-            return 2;
+            return TWO_ROOTS;
         }
         else if (fabs(discriminant) < epsilon)
         {
             *x1 = -b / (2 * a);
             printf("x = %.6f\n", *x1);
-            return 1;
+            return ONE_ROOT;
         }
         else
         {
-            return 0;
+            printf("No real roots\n");
+            return NO_ROOTS;
         }
     }
 }
@@ -207,3 +225,9 @@ int check_right_triangle(double a, double b, double c, double epsilon)
 
     return 0;
 }
+
+// gcc ex3.c -o ex3
+
+// ./ex3.exe -q 0.00001 1 2 3
+// ./ex3.exe -m 10 5
+// ./ex3.exe -t 0.00001 3 4 5

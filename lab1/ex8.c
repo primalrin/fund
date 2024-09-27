@@ -3,115 +3,91 @@
 #include <string.h>
 #include <ctype.h>
 
-#define MAX_NUMBER_LENGTH 100
+#define MAX_BASE 36
+#define MAX_NUMBER_LEN 100
 
-int char_to_digit(char c)
+int find_min_base(const char *str)
 {
-    if (isdigit(c))
+    int max_digit = 0;
+    for (int i = 0; str[i] != '\0'; i++)
     {
-        return c - '0';
-    }
-    else if (isalpha(c))
-    {
-        return tolower(c) - 'a' + 10;
-    }
-    return -1;
-}
-
-int determine_min_base(const char *number_str)
-{
-    int max_digit = -1;
-    for (int i = 0; number_str[i] != '\0'; ++i)
-    {
-        int digit = char_to_digit(number_str[i]);
-        if (digit == -1)
+        if (isdigit(str[i]))
         {
-            return -1;
+            max_digit = (str[i] - '0' > max_digit) ? str[i] - '0' : max_digit;
         }
-        if (digit > max_digit)
+        else if (isalpha(str[i]))
         {
-            max_digit = digit;
+            max_digit = (tolower(str[i]) - 'a' + 10 > max_digit) ? tolower(str[i]) - 'a' + 10 : max_digit;
         }
     }
-    return max_digit < 1 ? 2 : max_digit + 1;
+
+    return max_digit + 1;
 }
 
-long long convert_to_decimal(const char *number_str, int base)
+long long convert_to_decimal(const char *str, int base)
 {
-    long long decimal_value = 0;
+    long long decimal = 0;
     long long power = 1;
-    for (int i = strlen(number_str) - 1; i >= 0; --i)
+    for (int i = strlen(str) - 1; i >= 0; i--)
     {
-        int digit = char_to_digit(number_str[i]);
-        if (digit == -1 || digit >= base)
+        if (isdigit(str[i]))
         {
-            return -1;
+            decimal += (str[i] - '0') * power;
         }
-        decimal_value += digit * power;
+        else if (isalpha(str[i]))
+        {
+            decimal += (tolower(str[i]) - 'a' + 10) * power;
+        }
         power *= base;
     }
-    return decimal_value;
+    return decimal;
 }
 
-int process_number(const char *number_str, FILE *output_file)
+int main()
 {
-    int min_base = determine_min_base(number_str);
-    if (min_base == -1)
+    FILE *input_file = fopen("input.txt", "r");
+    if (input_file == NULL)
     {
-        return -1;
-    }
-
-    long long decimal_value = convert_to_decimal(number_str, min_base);
-    if (decimal_value == -1)
-    {
-        return -1;
-    }
-
-    int start_index = 0;
-    while (number_str[start_index] == '0' && number_str[start_index + 1] != '\0')
-    {
-        start_index++;
-    }
-
-    fprintf(output_file, "%s %d %lld\n", number_str + start_index, min_base, decimal_value);
-    return 0;
-}
-
-int main(int argc, char *argv[])
-{
-    if (argc != 4)
-    {
-        fprintf(stderr, "Usage: %s <input_file> <output_file>\n", argv[0]);
+        perror("Ошибка открытия входного файла");
         return 1;
     }
 
-    FILE *input_file = fopen(argv[1], "r");
-    if (!input_file)
+    FILE *output_file = fopen("output.txt", "w");
+    if (output_file == NULL)
     {
-        perror("Error opening input file");
-        return 1;
-    }
-
-    FILE *output_file = fopen(argv[2], "w");
-    if (!output_file)
-    {
-        perror("Error opening output file");
+        perror("Ошибка открытия выходного файла");
         fclose(input_file);
         return 1;
     }
 
-    char number_str[MAX_NUMBER_LENGTH];
+    char number_str[MAX_NUMBER_LEN];
+
     while (fscanf(input_file, "%s", number_str) == 1)
     {
-
-        if (process_number(number_str, output_file) != 0)
+        int i = 0;
+        while (number_str[i] == '0' && number_str[i + 1] != '\0')
         {
-            fprintf(stderr, "Invalid number format: %s\n", number_str);
+            i++;
         }
+
+        int min_base = find_min_base(number_str + i);
+
+        if (min_base > MAX_BASE || min_base < 2)
+        {
+            fprintf(stderr, "Число %s имеет недопустимое основание\n", number_str);
+            continue;
+        }
+
+        long long decimal_value = convert_to_decimal(number_str + i, min_base);
+
+        fprintf(output_file, "%s %d %lld\n", number_str + i, min_base, decimal_value);
     }
 
     fclose(input_file);
     fclose(output_file);
-
     return 0;
 }
+
+// gcc ex8.c -o ex8
+
+// ./ex8.exe

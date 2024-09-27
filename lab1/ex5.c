@@ -3,45 +3,69 @@
 #include <math.h>
 #include <float.h>
 
-// Function to calculate the factorial using tgamma
 double factorial(int n)
 {
     if (n < 0)
     {
-        return -1; // Indicate error for negative input
+        return -1;
     }
-    return tgamma(n + 1);
+    if (n == 0)
+    {
+        return 1;
+    }
+    double result = 1.0;
+    for (int i = 1; i <= n; ++i)
+    {
+        if (DBL_MAX / result < i)
+        {
+            return -2;
+        }
+        result *= i;
+    }
+    return result;
 }
 
 double double_factorial(int n)
 {
     if (n < -1)
+    {
         return -1;
+    }
     if (n <= 1)
+    {
         return 1;
+    }
     double res = 1.0;
     for (int i = n; i >= 2; i -= 2)
     {
+        if (DBL_MAX / res < i)
+        {
+            return -2;
+        }
         res *= i;
     }
     return res;
 }
 
-// Function to calculate the first sum
 int calculate_sum_a(double x, double epsilon, double *result)
 {
-    double sum = 0.0;
-    double term;
-    int n = 0;
+    if (x == 0.0)
+    {
+        *result = 1.0;
+        return 0;
+    }
+
+    double sum = 1.0;
+    double term = 1.0;
+    int n = 1;
 
     do
     {
-        double fact_val = factorial(n);
-        if (fact_val == -1)
+        term *= x / n;
+        if (isinf(term))
         {
-            return 1; // Indicate error in factorial calculation
+            return 1;
         }
-        term = pow(x, n) / fact_val;
         sum += term;
         n++;
     } while (fabs(term) > epsilon);
@@ -52,32 +76,50 @@ int calculate_sum_a(double x, double epsilon, double *result)
 
 int calculate_sum_b(double x, double epsilon, double *result)
 {
-    double sum = 0.0;
-    double term;
-    int n = 0;
-    do
+    if (x == 0)
     {
-        double fact_val = factorial(2 * n);
-        if (fact_val == -1)
-        {
-            return 1;
-        }
+        *result = 1.0;
+        return 0;
+    }
 
-        term = pow(-1, n) * pow(x, 2 * n) / fact_val;
-        sum += term;
-        n++;
-    } while (fabs(term) > epsilon);
-    *result = sum;
-    return 0;
-}
-int calculate_sum_c(double x, double epsilon, double *result)
-{
     double sum = 1.0;
     double term = 1.0;
     int n = 1;
+
     do
     {
-        term *= 27 * x * x / ((3 * n - 2) * (3 * n - 1) * (3 * n));
+        if (isinf(term))
+        {
+            return 1;
+        }
+        term *= -x * x / ((2.0 * n - 1) * (2.0 * n));
+        sum += term;
+        n++;
+    } while (fabs(term) > epsilon);
+
+    *result = sum;
+    return 0;
+}
+
+int calculate_sum_c(double x, double epsilon, double *result)
+{
+    if (x == 0)
+    {
+        *result = 1.0;
+        return 0;
+    }
+
+    double sum = 1.0;
+    double term = 1.0;
+    int n = 1;
+
+    do
+    {
+        if (isinf(term))
+        {
+            return 1;
+        }
+        term *= 27.0 * x * x / ((3.0 * n - 2) * (3.0 * n - 1) * (3.0 * n));
         sum += term;
         n++;
     } while (fabs(term) > epsilon);
@@ -88,15 +130,25 @@ int calculate_sum_c(double x, double epsilon, double *result)
 
 int calculate_sum_d(double x, double epsilon, double *result)
 {
+    if (x == 0)
+    {
+        *result = 0;
+        return 0;
+    }
+
     double sum = 0.0;
-    double term = -x * x / 2; // Initialize first term (n=1)
+    double term = -x * x / 2.0;
     int n = 1;
 
     do
     {
+        if (isinf(term))
+        {
+            return 1;
+        }
         sum += term;
         n++;
-        term *= -x * x * (2.0 * n - 1.0) / (2.0 * n * (2.0 * n - 2.0)); // Correct iterative calculation
+        term *= -x * x * (2.0 * n - 1.0) / (2.0 * n * (2.0 * n - 2.0));
     } while (fabs(term) > epsilon);
 
     *result = sum;
@@ -155,3 +207,7 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+// gcc ex5.c -o ex5
+
+// ./ex5.exe 1.5 0.00001

@@ -5,7 +5,6 @@
 
 #define FIXED_ARRAY_SIZE 100
 
-// Function to swap two integers
 void swap(int *x, int *y)
 {
     int temp = *x;
@@ -13,7 +12,6 @@ void swap(int *x, int *y)
     *y = temp;
 }
 
-// Function to find and swap min and max elements in an array
 int min_max_swap(int arr[], int size)
 {
     if (size <= 0 || !arr)
@@ -23,8 +21,8 @@ int min_max_swap(int arr[], int size)
 
     int min_val = INT_MAX;
     int max_val = INT_MIN;
-    int min_idx = -1;
-    int max_idx = -1;
+    int min_idx = 0;
+    int max_idx = 0;
 
     for (int i = 0; i < size; i++)
     {
@@ -40,7 +38,7 @@ int min_max_swap(int arr[], int size)
         }
     }
 
-    if (min_idx != -1 && max_idx != -1 && min_idx != max_idx)
+    if (min_idx != max_idx)
     {
         swap(&arr[min_idx], &arr[max_idx]);
     }
@@ -72,18 +70,27 @@ int main(int argc, char *argv[])
     int fixed_array[FIXED_ARRAY_SIZE];
     srand(time(NULL));
 
+    printf("Fixed array before min_max_swap:\n");
     for (int i = 0; i < FIXED_ARRAY_SIZE; i++)
     {
         fixed_array[i] = a + rand() % (b - a + 1);
+        printf("%d ", fixed_array[i]);
     }
+    printf("\n");
 
     if (min_max_swap(fixed_array, FIXED_ARRAY_SIZE) != 0)
     {
-        fprintf(stderr, "Error in min_max_swap function.\n");
+        fprintf(stderr, "Error in min_max_swap function: empty array or NULL pointer.\n");
         return 1;
     }
 
-    // Dynamic arrays part
+    printf("Fixed array after min_max_swap:\n");
+    for (int i = 0; i < FIXED_ARRAY_SIZE; i++)
+    {
+        printf("%d ", fixed_array[i]);
+    }
+    printf("\n");
+
     int size_a = 10 + rand() % (10000 - 10 + 1);
     int size_b = 10 + rand() % (10000 - 10 + 1);
 
@@ -125,9 +132,20 @@ int main(int argc, char *argv[])
         c_arr[i] = a_arr[i] + closest_val;
     }
 
+    printf("Dynamic array C:\n");
+    for (int i = 0; i < size_a; i++)
+    {
+        printf("%d ", c_arr[i]);
+    }
+    printf("\n");
+
     free(a_arr);
     free(b_arr);
     free(c_arr);
 
     return 0;
 }
+
+// gcc ex9.c -o ex9
+
+// ./ex9.exe 1 100

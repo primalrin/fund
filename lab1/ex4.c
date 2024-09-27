@@ -5,13 +5,12 @@
 
 #define MAX_LINE_LENGTH 1024
 
-// Function to handle the -d flag (remove digits)
 int handle_d(const char *input_filename, const char *output_filename)
 {
     FILE *input_file = fopen(input_filename, "r");
     if (!input_file)
     {
-        perror("Error opening input file");
+        fprintf(stderr, "Error opening input file: %s\n", input_filename);
         return -1;
     }
 
@@ -40,7 +39,6 @@ int handle_d(const char *input_filename, const char *output_filename)
     return 0;
 }
 
-// Function to handle the -i flag (count Latin alphabet characters)
 int handle_i(const char *input_filename, const char *output_filename)
 {
     FILE *input_file = fopen(input_filename, "r");
@@ -77,7 +75,6 @@ int handle_i(const char *input_filename, const char *output_filename)
     return 0;
 }
 
-// Function to handle the -s flag (count non-alphanumeric/space characters)
 int handle_s(const char *input_filename, const char *output_filename)
 {
     FILE *input_file = fopen(input_filename, "r");
@@ -114,7 +111,6 @@ int handle_s(const char *input_filename, const char *output_filename)
     return 0;
 }
 
-// Function to handle the -a flag (replace non-digits with hex ASCII code)
 int handle_a(const char *input_filename, const char *output_filename)
 {
     FILE *input_file = fopen(input_filename, "r");
@@ -133,13 +129,20 @@ int handle_a(const char *input_filename, const char *output_filename)
     }
 
     char line[MAX_LINE_LENGTH];
+    unsigned char hex_representation[3];
     while (fgets(line, sizeof(line), input_file))
     {
         for (size_t i = 0; line[i] != '\0'; ++i)
         {
             if (!isdigit(line[i]))
             {
-                fprintf(output_file, "%X", (unsigned char)line[i]); // Use capital X for uppercase hex
+                snprintf((char *)hex_representation, sizeof(hex_representation), "%02X", (unsigned char)line[i]);
+                fwrite(hex_representation, 1, strlen((char *)hex_representation), output_file);
+
+                if (line[i] == '\n')
+                {
+                    fputc('\n', output_file);
+                }
             }
             else
             {
@@ -185,7 +188,6 @@ int main(int argc, char *argv[])
     }
     else
     {
-        // Generate output filename
         size_t len = strlen(input_filename) + strlen("out_") + 1;
         output_filename = malloc(len);
         if (!output_filename)
@@ -193,10 +195,15 @@ int main(int argc, char *argv[])
             perror("Memory allocation failed");
             return -1;
         }
-        snprintf(output_filename, len, "out_%s", input_filename);
+        int ret = snprintf(output_filename, len, "out_%s", input_filename);
+        if (ret < 0 || (size_t)ret >= len)
+        {
+            perror("snprintf failed");
+            free(output_filename);
+            return -1;
+        }
     }
 
-    // Process based on the flag
     if (strcmp(flag, "-d") == 0 || strcmp(flag, "/d") == 0 || strcmp(flag, "-nd") == 0 || strcmp(flag, "/nd") == 0)
     {
         if (handle_d(input_filename, output_filename) != 0)
@@ -246,3 +253,14 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+// gcc ex4.c -o ex4
+
+// ./ex4.exe -d input.txt
+// ./ex4.exe -i input.txt
+// ./ex4.exe -s input.txt
+// ./ex4.exe -a input.txt
+// ./ex4.exe -nd input.txt output.txt
+// ./ex4.exe -ni input.txt output.txt
+// ./ex4.exe -ns input.txt output.txt
+// ./ex4.exe -na input.txt output.txt

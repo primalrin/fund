@@ -247,3 +247,12 @@ int main(int argc, char *argv[])
         return 3;
     }
 }
+
+// gcc ex1.c -o ex1
+
+// ./ex1 -h 5
+// ./ex1 -p 17
+// ./ex1 -s 255
+// ./ex1 -e 3
+// ./ex1 -a 10
+// ./ex1 -f 5

@@ -1,189 +1,204 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-#include <ctype.h>
 #include <limits.h>
+#include <ctype.h>
 
 #define MAX_BASE 36
 #define MAX_STR_LEN 100
 
-int str_to_long(const char *str, int base, long *result)
+long long str_to_ll(const char *str, int base)
 {
-    if (base < 2 || base > MAX_BASE)
-    {
-        return 1;
-    }
-
-    *result = 0;
+    long long res = 0;
+    long long power = 1;
+    int len = strlen(str);
     int sign = 1;
-    if (*str == '-')
+
+    if (str[0] == '-')
     {
         sign = -1;
         str++;
-    }
-    else if (*str == '+')
-    {
-        str++;
+        len--;
     }
 
-    while (*str != '\0')
+    for (int i = len - 1; i >= 0; i--)
     {
+        char c = str[i];
         int digit;
-        if (isdigit(*str))
+
+        if (isdigit(c))
         {
-            digit = *str - '0';
-        }
-        else if (isalpha(*str) && isupper(*str))
-        {
-            digit = *str - 'A' + 10;
+            digit = c - '0';
         }
         else
         {
-            return 1;
+            digit = c - 'A' + 10;
         }
 
         if (digit >= base)
         {
-            return 1;
+            errno = ERANGE;
+            return LLONG_MAX;
         }
 
-        if (*result > (LONG_MAX - digit) / base)
+        if (res > (LLONG_MAX - digit) / power)
         {
-            if (sign == 1)
-            {
-                *result = LONG_MAX;
-            }
-            else
-            {
-                *result = LONG_MIN;
-            }
-            return 2;
+            errno = ERANGE;
+            return LLONG_MAX;
         }
 
-        *result = *result * base + digit;
-        str++;
+        res += digit * power;
+        power *= base;
     }
-    *result *= sign;
 
-    return 0;
+    return res * sign;
 }
 
-char *long_to_str(long num, int base)
+char *ll_to_str(long long num, int base)
 {
-    if (base < 2 || base > MAX_BASE)
-    {
-        return NULL;
-    }
-
     char buffer[MAX_STR_LEN];
     int i = 0;
-    long n = num;
 
-    if (n == 0)
+    if (num == 0)
     {
         buffer[i++] = '0';
     }
     else
     {
-        int sign = (n < 0) ? -1 : 1;
-        n = labs(n);
-        while (n > 0)
+        while (num > 0)
         {
-            int remainder = n % base;
-            buffer[i++] = (remainder < 10) ? remainder + '0' : remainder - 10 + 'A';
-            n /= base;
-        }
-        if (sign == -1)
-        {
-            buffer[i++] = '-';
+            int digit = num % base;
+            if (digit < 10)
+            {
+                buffer[i++] = digit + '0';
+            }
+            else
+            {
+                buffer[i++] = digit - 10 + 'A';
+            }
+            num /= base;
         }
     }
 
     buffer[i] = '\0';
 
-    char *result = (char *)malloc(sizeof(char) * (i + 1));
-    if (!result)
+    int start = 0;
+    int end = i - 1;
+    while (start < end)
+    {
+        char temp = buffer[start];
+        buffer[start] = buffer[end];
+        buffer[end] = temp;
+        start++;
+        end--;
+    }
+
+    char *res = (char *)malloc(sizeof(char) * (i + 1));
+    if (!res)
     {
         return NULL;
     }
+    strcpy(res, buffer);
+    return res;
+}
 
-    int j, k;
-    for (j = 0, k = i - 1; k >= 0; j++, k--)
+void remove_leading_zeros(char *str)
+{
+    int len = strlen(str);
+    int i = 0;
+
+    while (i < len - 1 && str[i] == '0')
     {
-        result[j] = buffer[k];
+        i++;
     }
-    result[j] = '\0';
-    return result;
+
+    if (i > 0)
+    {
+        memmove(str, str + i, len - i + 1);
+    }
 }
 
 int main()
 {
     int base;
 
+    printf("Введите основание системы счисления (2-36): ");
     if (scanf("%d", &base) != 1 || base < 2 || base > MAX_BASE)
     {
-        printf("Invalid base\n");
+        printf("Ошибка: некорректное основание системы счисления\n");
         return 1;
     }
 
-    char input[MAX_STR_LEN];
-    long max_abs = 0;
-    char *max_abs_str = NULL;
-    long current_num;
+    char str[MAX_STR_LEN];
+    long long max_abs = 0;
+    long long max_num = 0;
 
-    while (scanf("%s", input) == 1)
+    printf("Введите числа (для завершения введите Stop):\n");
+
+    while (1)
     {
-        if (strcmp(input, "Stop") == 0)
+        scanf("%s", str);
+
+        if (strcmp(str, "Stop") == 0)
         {
             break;
         }
 
-        int status = str_to_long(input, base, current_num);
-        if (status == 1)
+        long long num = str_to_ll(str, base);
+
+        if (num == LLONG_MAX && errno == ERANGE)
         {
-            printf("Invalid number: %s\n", input);
+            printf("Ошибка: переполнение или некорректная цифра в числе\n");
+            errno = 0;
             continue;
         }
-        else if (status == 2)
-        {
-            printf("Overflow detected: %s\n", input);
-        }
 
-        if (llabs(current_num) > llabs(max_abs))
+        if (llabs(num) > max_abs)
         {
-            max_abs = current_num;
-            free(max_abs_str);
-            max_abs_str = strdup(input);
-            if (!max_abs_str)
-            {
-                perror("Memory allocation failed");
-                return 1;
-            }
+            max_abs = llabs(num);
+            max_num = num;
         }
     }
 
-    if (max_abs_str == NULL)
+    if (max_abs == 0)
     {
-        printf("No numbers entered\n");
+        printf("Не было введено ни одного числа\n");
         return 0;
     }
 
-    printf("%s\n", max_abs_str);
-
-    for (int b = 9; b <= 36; b += 9)
+    char *max_str = ll_to_str(max_num, base);
+    if (!max_str)
     {
-        char *converted = long_to_str(max_abs, b);
-        if (converted)
-        {
-            printf("%s\n", converted);
-            free(converted);
-        }
-        else
-        {
-            printf("Conversion error (base %d)\n", b);
-        }
+        printf("Ошибка выделения памяти\n");
+        return 1;
     }
-    free(max_abs_str);
+    remove_leading_zeros(max_str);
+    printf("Максимальное по модулю число: %s\n", max_str);
+    free(max_str);
+
+    int bases[] = {9, 18, 27, 36};
+    int num_bases = sizeof(bases) / sizeof(bases[0]);
+
+    for (int i = 0; i < num_bases; i++)
+    {
+        char *str_in_base = ll_to_str(max_num, bases[i]);
+        if (!str_in_base)
+        {
+            printf("Ошибка выделения памяти\n");
+            return 1;
+        }
+        remove_leading_zeros(str_in_base);
+        printf("В системе счисления с основанием %d: %s\n", bases[i], str_in_base);
+        free(str_in_base);
+    }
+
     return 0;
 }
+
+// gcc ex10.c -o ex10
+
+// ./ex3.exe 10
+// 10
+// 2
+// 10
+// Stop

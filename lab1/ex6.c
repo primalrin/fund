@@ -4,53 +4,50 @@
 
 #define SUCCESS 0
 #define FAILURE -1
+#define MAX_ITERATIONS 1000
 
-double integrate_a(double a, double b, int n)
+double integrate_trapezoidal(double a, double b, int n, double (*f)(double))
 {
     double h = (b - a) / n;
-    double sum = 0.5 * (log((1 + a) / a) + log((1 + b) / b));
+    double sum = 0.5 * (f(a) + f(b));
     for (int i = 1; i < n; i++)
     {
         double x = a + i * h;
-        sum += log((1 + x) / x);
+        sum += f(x);
     }
     return h * sum;
 }
 
-double integrate_b(double a, double b, int n)
-{
-    double h = (b - a) / n;
-    double sum = 0.5 * (exp(-a * a / 2) + exp(-b * b / 2));
-    for (int i = 1; i < n; i++)
-    {
-        double x = a + i * h;
-        sum += exp(-x * x / 2);
-    }
-    return h * sum;
-}
+double f_a(double x) { return log((1 + x) / x); }
+double f_b(double x) { return exp(-x * x / 2); }
+double f_c(double x) { return log(1.0 / (1 - x)); }
+double f_d(double x) { return pow(x, x); }
 
-double integrate_c(double a, double b, int n)
+double integrate(double a, double b, double epsilon, double (*f)(double))
 {
-    double h = (b - a) / n;
-    double sum = 0.5 * (log(1.0 / (1 - a)) + log(1.0 / (1 - b)));
-    for (int i = 1; i < n; i++)
+    int n = 1;
+    int iteration = 0;
+    double prev_result = integrate_trapezoidal(a, b, n, f);
+    do
     {
-        double x = a + i * h;
-        sum += log(1.0 / (1 - x));
-    }
-    return h * sum;
-}
+        n *= 2;
+        double current_result = integrate_trapezoidal(a, b, n, f);
+        if (fabs(current_result) > 1e100 || fabs(prev_result) > 1e100)
+        {
+            fprintf(stderr, "Integral diverges.\n");
+            exit(FAILURE);
+        }
+        iteration++;
+        if (iteration == MAX_ITERATIONS)
+        {
+            fprintf(stderr, "Integral did not converge.\n");
+            exit(FAILURE);
+        }
 
-double integrate_d(double a, double b, int n)
-{
-    double h = (b - a) / n;
-    double sum = 0.5 * (pow(a, a) + pow(b, b));
-    for (int i = 1; i < n; i++)
-    {
-        double x = a + i * h;
-        sum += pow(x, x);
-    }
-    return h * sum;
+        prev_result = current_result;
+
+    } while (fabs(prev_result - integrate_trapezoidal(a, b, n * 2, f)) > epsilon);
+    return prev_result;
 }
 
 int main(int argc, char *argv[])
@@ -69,44 +66,14 @@ int main(int argc, char *argv[])
         return FAILURE;
     }
 
-    int n = 1;
-    double prev_result, current_result;
-
-    // Example usage for integral a
-    prev_result = integrate_a(0, 1, n);
-    do
-    {
-        n *= 2;
-        current_result = integrate_a(0, 1, n);
-    } while (fabs(current_result - prev_result) > epsilon);
-    printf("Integral a: %f\n", current_result);
-
-    n = 1; // Reset n for the next integral
-    prev_result = integrate_b(0, 1, n);
-    do
-    {
-        n *= 2;
-        current_result = integrate_b(0, 1, n);
-    } while (fabs(current_result - prev_result) > epsilon);
-    printf("Integral b: %f\n", current_result);
-
-    n = 1; // Reset n for the next integral
-    prev_result = integrate_c(0, 1, n);
-    do
-    {
-        n *= 2;
-        current_result = integrate_c(0, 1, n);
-    } while (fabs(current_result - prev_result) > epsilon);
-    printf("Integral c: %f\n", current_result);
-
-    n = 1; // Reset n for the next integral
-    prev_result = integrate_d(0, 1, n);
-    do
-    {
-        n *= 2;
-        current_result = integrate_d(0, 1, n);
-    } while (fabs(current_result - prev_result) > epsilon);
-    printf("Integral d: %f\n", current_result);
+    printf("Integral a: %f\n", integrate(0.000000001, 1, epsilon, f_a));
+    printf("Integral b: %f\n", integrate(0, 1, epsilon, f_b));
+    printf("Integral c: %f\n", integrate(0, 0.999999999, epsilon, f_c));
+    printf("Integral d: %f\n", integrate(0, 1, epsilon, f_d));
 
     return SUCCESS;
 }
+
+// gcc ex6.c -o ex6
+
+// ./ex6.exe 0.00001

@@ -367,4 +367,5 @@ int main(int argc, char *argv[])
 }
 
 // gcc ex2.c -o ex2
+
 // ./ex2.exe 0.00001
