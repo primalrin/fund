@@ -12,9 +12,9 @@ enum quadratic_equation_result
     INVALID_INPUT = -1
 };
 
-enum quadratic_equation_result solve_quadratic_equation(double a, double b, double c, double epsilon, double *x1, double *x2);
-int check_multiple(int num1, int num2);
-int check_right_triangle(double a, double b, double c, double epsilon);
+enum quadratic_equation_result solve_quadratic_equation(const double a, const double b, const double c, const double epsilon, double *x1, double *x2);
+int check_multiple(const int num1, const int num2);
+int check_right_triangle(const double a, const double b, const double c, const double epsilon);
 
 int main(int argc, const char *argv[])
 {
@@ -28,7 +28,7 @@ int main(int argc, const char *argv[])
     {
         if (argc != 6)
         {
-            fprintf(stderr, "Error: Incorrect number of arguments for -q flag.\n");
+            fprintf(stderr, "Error: Incorrect number of arguments for -q flag. Expected 5, got %d.\n", argc - 1);
             return 1;
         }
 
@@ -40,27 +40,18 @@ int main(int argc, const char *argv[])
             return 1;
         }
 
-        double a = strtod(argv[3], &endptr);
-        if (*endptr != '\0')
+        double coeffs[3];
+        for (int i = 0; i < 3; i++)
         {
-            fprintf(stderr, "Invalid coefficient 'a' value: %s\n", argv[3]);
-            return 1;
-        }
-        double b = strtod(argv[4], &endptr);
-        if (*endptr != '\0')
-        {
-            fprintf(stderr, "Invalid coefficient 'b' value: %s\n", argv[4]);
-            return 1;
-        }
-        double c = strtod(argv[5], &endptr);
-        if (*endptr != '\0')
-        {
-            fprintf(stderr, "Invalid coefficient 'c' value: %s\n", argv[5]);
-            return 1;
+            coeffs[i] = strtod(argv[i + 3], &endptr);
+            if (*endptr != '\0')
+            {
+                fprintf(stderr, "Invalid coefficient value: %s\n", argv[i + 3]);
+                return 1;
+            }
         }
 
         double x1, x2;
-        double coeffs[3] = {a, b, c};
 
         for (int i = 0; i < 3; ++i)
         {
@@ -74,9 +65,14 @@ int main(int argc, const char *argv[])
                         continue;
 
                     enum quadratic_equation_result result = solve_quadratic_equation(coeffs[i], coeffs[j], coeffs[k], epsilon, &x1, &x2);
-                    if (result == INVALID_INPUT)
+                    switch (result)
                     {
-                        fprintf(stderr, "Error solving quadratic equation.\n");
+                    case INVALID_INPUT:
+                        fprintf(stderr, "Error: Invalid input for quadratic equation.\n");
+                        return 1;
+                    case NO_ROOTS:
+                        printf("No real roots for coefficients %.6f, %.6f, %.6f\n", coeffs[i], coeffs[j], coeffs[k]);
+                        break;
                     }
                 }
             }
@@ -86,7 +82,7 @@ int main(int argc, const char *argv[])
     {
         if (argc != 4)
         {
-            fprintf(stderr, "Error: Incorrect number of arguments for -m flag.\n");
+            fprintf(stderr, "Error: Incorrect number of arguments for -m flag. Expected 3, got %d.\n", argc - 1);
             return 1;
         }
 
@@ -112,7 +108,7 @@ int main(int argc, const char *argv[])
     {
         if (argc != 6)
         {
-            fprintf(stderr, "Error: Incorrect number of arguments for -t flag.\n");
+            fprintf(stderr, "Error: Incorrect number of arguments for -t flag. Expected 5, got %d.\n", argc - 1);
             return 1;
         }
 
@@ -124,28 +120,18 @@ int main(int argc, const char *argv[])
             return 1;
         }
 
-        double a = strtod(argv[3], &endptr);
-        if (*endptr != '\0' || a <= 0)
+        double sides[3];
+        for (int i = 0; i < 3; i++)
         {
-            fprintf(stderr, "Invalid side 'a' value: %s\n", argv[3]);
-            return 1;
+            sides[i] = strtod(argv[i + 3], &endptr);
+            if (*endptr != '\0' || sides[i] <= 0)
+            {
+                fprintf(stderr, "Invalid side value: %s\n", argv[i + 3]);
+                return 1;
+            }
         }
 
-        double b = strtod(argv[4], &endptr);
-        if (*endptr != '\0' || b <= 0)
-        {
-            fprintf(stderr, "Invalid side 'b' value: %s\n", argv[4]);
-            return 1;
-        }
-
-        double c = strtod(argv[5], &endptr);
-        if (*endptr != '\0' || c <= 0)
-        {
-            fprintf(stderr, "Invalid side 'c' value: %s\n", argv[5]);
-            return 1;
-        }
-
-        if (check_right_triangle(a, b, c, epsilon))
+        if (check_right_triangle(sides[0], sides[1], sides[2], epsilon))
         {
             printf("The sides can form a right triangle.\n");
         }
@@ -156,14 +142,14 @@ int main(int argc, const char *argv[])
     }
     else
     {
-        fprintf(stderr, "Error: Invalid flag provided.\n");
+        fprintf(stderr, "Error: Invalid flag provided: %s\n", argv[1]);
         return 1;
     }
 
     return 0;
 }
 
-enum quadratic_equation_result solve_quadratic_equation(double a, double b, double c, double epsilon, double *x1, double *x2)
+enum quadratic_equation_result solve_quadratic_equation(const double a, const double b, const double c, const double epsilon, double *x1, double *x2)
 {
     if (fabs(a) < epsilon)
     {
@@ -196,18 +182,18 @@ enum quadratic_equation_result solve_quadratic_equation(double a, double b, doub
         }
         else
         {
-            printf("No real roots\n");
+
             return NO_ROOTS;
         }
     }
 }
 
-int check_multiple(int num1, int num2)
+int check_multiple(const int num1, const int num2)
 {
     return num1 % num2 == 0;
 }
 
-int check_right_triangle(double a, double b, double c, double epsilon)
+int check_right_triangle(const double a, const double b, const double c, const double epsilon)
 {
     if (a <= 0 || b <= 0 || c <= 0)
     {
@@ -225,7 +211,6 @@ int check_right_triangle(double a, double b, double c, double epsilon)
 
     return 0;
 }
-
 // gcc ex3.c -o ex3
 
 // ./ex3.exe -q 0.00001 1 2 3

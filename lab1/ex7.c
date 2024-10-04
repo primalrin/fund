@@ -25,7 +25,7 @@ int read_lexeme(FILE *fp, char *lexeme)
 
 int write_lexeme(FILE *fp, const char *lexeme)
 {
-    if (fprintf(fp, "%s ", lexeme) < 0)
+    if (fprintf(fp, "%s", lexeme) < 0)
     {
         return -1;
     }
@@ -37,14 +37,14 @@ int process_r(const char *file1_path, const char *file2_path, const char *output
     FILE *file1 = fopen(file1_path, "r");
     if (!file1)
     {
-        perror("Error opening file1");
+        fprintf(stderr, "Error opening file1: %s\n", file1_path);
         return -1;
     }
     FILE *file2 = fopen(file2_path, "r");
     if (!file2)
     {
         fclose(file1);
-        perror("Error opening file2");
+        fprintf(stderr, "Error opening file2: %s\n", file2_path);
         return -1;
     }
     FILE *output = fopen(output_path, "w");
@@ -52,7 +52,7 @@ int process_r(const char *file1_path, const char *file2_path, const char *output
     {
         fclose(file1);
         fclose(file2);
-        perror("Error opening output file");
+        fprintf(stderr, "Error opening output file: %s\n", output_path);
         return -1;
     }
 
@@ -72,9 +72,10 @@ int process_r(const char *file1_path, const char *file2_path, const char *output
                     fclose(file1);
                     fclose(file2);
                     fclose(output);
-                    perror("Error writing to output file");
+                    fprintf(stderr, "Error writing to output file: %s\n", output_path);
                     return -1;
                 }
+                fputc(' ', output);
             }
         }
         else if (!eof2)
@@ -87,9 +88,10 @@ int process_r(const char *file1_path, const char *file2_path, const char *output
                     fclose(file1);
                     fclose(file2);
                     fclose(output);
-                    perror("Error writing to output file");
+                    fprintf(stderr, "Error writing to output file: %s\n", output_path);
                     return -1;
                 }
+                fputc(' ', output);
             }
         }
         i++;
@@ -103,16 +105,26 @@ int process_r(const char *file1_path, const char *file2_path, const char *output
 
 void to_base(char *lexeme, int base)
 {
-    char new_lexeme[MAX_LEXEME_LENGTH * 4] = {0};
+    char *new_lexeme = malloc(MAX_LEXEME_LENGTH * 4 * sizeof(char));
+    if (!new_lexeme)
+    {
+        fprintf(stderr, "Memory allocation failed\n");
+        exit(EXIT_FAILURE);
+    }
     char *ptr = new_lexeme;
     for (int i = 0; lexeme[i] != '\0'; i++)
     {
-        char buffer[10];
-        sprintf(buffer, (base == 4) ? "%03o" : "%03o", lexeme[i]);
-        strcat(ptr, buffer);
-        ptr += strlen(buffer);
+        int count = snprintf(ptr, MAX_LEXEME_LENGTH * 4, (base == 4) ? "%03o" : "%03o", lexeme[i]);
+        if (count < 0 || count >= MAX_LEXEME_LENGTH * 4)
+        {
+            fprintf(stderr, "Error converting to base %d\n", base);
+            free(new_lexeme);
+            exit(EXIT_FAILURE);
+        }
+        ptr += strlen(ptr);
     }
     strcpy(lexeme, new_lexeme);
+    free(new_lexeme);
 }
 
 int process_a(const char *input_path, const char *output_path)
@@ -120,14 +132,14 @@ int process_a(const char *input_path, const char *output_path)
     FILE *input = fopen(input_path, "r");
     if (!input)
     {
-        perror("Error opening input file");
+        fprintf(stderr, "Error opening input file: %s\n", input_path);
         return -1;
     }
     FILE *output = fopen(output_path, "w");
     if (!output)
     {
         fclose(input);
-        perror("Error opening output file");
+        fprintf(stderr, "Error opening output file: %s\n", output_path);
         return -1;
     }
 
@@ -148,14 +160,14 @@ int process_a(const char *input_path, const char *output_path)
                 }
                 to_base(lexeme, 4);
             }
-            else if (i % 2 == 0 && i % 10 != 0)
+            else if (i % 2 == 0)
             {
                 for (int j = 0; lexeme[j] != '\0'; j++)
                 {
                     lexeme[j] = tolower(lexeme[j]);
                 }
             }
-            else if (i % 5 == 0 && i % 10 != 0)
+            else if (i % 5 == 0)
             {
                 to_base(lexeme, 8);
             }
@@ -163,9 +175,10 @@ int process_a(const char *input_path, const char *output_path)
             {
                 fclose(input);
                 fclose(output);
-                perror("Error writing to output file");
+                fprintf(stderr, "Error writing to output file: %s\n", output_path);
                 return -1;
             }
+            fputc(' ', output);
             i++;
         }
     }
@@ -210,5 +223,5 @@ int main(int argc, char *argv[])
 
 // gcc ex7.c -o ex7
 
-// ./ex7.exe -r input1.txt input2.txt output.txt
-// ./ex7.exe -a input.txt output.txt
+// ./ex7.exe -r input71.txt input72.txt output7.txt
+// ./ex7.exe -a input7.txt output7.txt

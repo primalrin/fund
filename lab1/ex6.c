@@ -2,8 +2,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-#define SUCCESS 0
-#define FAILURE -1
 #define MAX_ITERATIONS 1000
 
 double integrate_trapezoidal(double a, double b, int n, double (*f)(double))
@@ -35,13 +33,13 @@ double integrate(double a, double b, double epsilon, double (*f)(double))
         if (fabs(current_result) > 1e100 || fabs(prev_result) > 1e100)
         {
             fprintf(stderr, "Integral diverges.\n");
-            exit(FAILURE);
+            exit(-1);
         }
         iteration++;
         if (iteration == MAX_ITERATIONS)
         {
             fprintf(stderr, "Integral did not converge.\n");
-            exit(FAILURE);
+            exit(-1);
         }
 
         prev_result = current_result;
@@ -55,7 +53,7 @@ int main(int argc, char *argv[])
     if (argc != 2)
     {
         fprintf(stderr, "Usage: %s <epsilon>\n", argv[0]);
-        return FAILURE;
+        return -1;
     }
 
     char *endptr;
@@ -63,7 +61,7 @@ int main(int argc, char *argv[])
     if (*endptr != '\0' || epsilon <= 0)
     {
         fprintf(stderr, "Invalid epsilon value.\n");
-        return FAILURE;
+        return -1;
     }
 
     printf("Integral a: %f\n", integrate(0.000000001, 1, epsilon, f_a));
@@ -71,7 +69,7 @@ int main(int argc, char *argv[])
     printf("Integral c: %f\n", integrate(0, 0.999999999, epsilon, f_c));
     printf("Integral d: %f\n", integrate(0, 1, epsilon, f_d));
 
-    return SUCCESS;
+    return 0;
 }
 
 // gcc ex6.c -o ex6

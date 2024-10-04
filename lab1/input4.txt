@@ -1,0 +1,7 @@
+123abc456
+!@#$%^&()_+=-`~[]{};',.
+This is a test string. 123
+Another line with special characters ~`!@#$%^&()_+=-
+Empty line follows
+
+Last line.

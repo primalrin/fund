@@ -2,13 +2,14 @@
 #include <math.h>
 #include <stdlib.h>
 #include <float.h>
+#include <corecrt_math_defines.h>
 
 #define MAX_ITERATIONS 1000000
 #define MAX_ITERATIONS_FAC 47
 
 double calculate_e_limit(double epsilon)
 {
-    if (epsilon <= 0)
+    if ((epsilon / 100) <= 0)
     {
         return -1.0;
     }
@@ -16,7 +17,7 @@ double calculate_e_limit(double epsilon)
     double prev_e = -1.0;
     int n = 1;
 
-    while (fabs(e - prev_e) > epsilon && n < INT_MAX)
+    while (fabs(e - prev_e) > (epsilon / 100) && n < INT_MAX)
     {
         prev_e = e;
         e = pow(1.0 + (1.0 / n), n);
@@ -52,7 +53,7 @@ double calculate_e_series(double epsilon)
 
 double calculate_pi_limit(double epsilon)
 {
-    if (epsilon <= 0)
+    if ((epsilon / 100) <= 0)
     {
         return -1.0;
     }
@@ -69,7 +70,7 @@ double calculate_pi_limit(double epsilon)
 
         pi_approx = numerator / denominator;
 
-        if (fabs(pi_approx - prev_pi_approx) < epsilon || n > MAX_ITERATIONS_FAC)
+        if (fabs(pi_approx - prev_pi_approx) < (epsilon / 100) || n > MAX_ITERATIONS_FAC)
         {
             return pi_approx;
         }
@@ -368,4 +369,4 @@ int main(int argc, char *argv[])
 
 // gcc ex2.c -o ex2
 
-// ./ex2.exe 0.00001
+// ./ex2.exe 0.001
