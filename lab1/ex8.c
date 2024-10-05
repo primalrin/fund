@@ -23,7 +23,7 @@ int find_min_base(const char *str)
         }
         else
         {
-            return -1; // Invalid character
+            return -1; 
         }
     }
     return (max_digit < 1) ? 2 : max_digit + 1;
@@ -48,13 +48,13 @@ long long convert_to_decimal(const char *str, int base)
         if (decimal > LLONG_MAX / base || (decimal == LLONG_MAX / base && digit > LLONG_MAX % base))
         {
             errno = ERANGE;
-            return -1; // Overflow
+            return -1; 
         }
         decimal += digit * power;
         if (power > LLONG_MAX / base)
         {
             errno = ERANGE;
-            return -1; // Overflow
+            return -1; 
         }
 
         power *= base;
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
         if (min_base == -1 || min_base > MAX_BASE || min_base < 2)
         {
             fprintf(stderr, "Invalid number: %s\n", number_str);
-            continue; // Skip invalid numbers
+            continue; 
         }
 
         long long decimal_value = convert_to_decimal(number_str + i, min_base);
