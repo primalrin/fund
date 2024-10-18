@@ -112,9 +112,10 @@ void to_base(char *lexeme, int base)
         exit(EXIT_FAILURE);
     }
     char *ptr = new_lexeme;
+    const char *format = (base == 4) ? "%03o" : "%03o";
     for (int i = 0; lexeme[i] != '\0'; i++)
     {
-        int count = snprintf(ptr, MAX_LEXEME_LENGTH * 4, (base == 4) ? "%03o" : "%03o", lexeme[i]);
+        int count = snprintf(ptr, MAX_LEXEME_LENGTH * 4, format, lexeme[i]);
         if (count < 0 || count >= MAX_LEXEME_LENGTH * 4)
         {
             fprintf(stderr, "Error converting to base %d\n", base);
