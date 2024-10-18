@@ -218,11 +218,11 @@ int main(int argc, char *argv[])
 
         output_filename = argv[3];
         custom_output = 1;
-        flag_char = flag[2]; // запоминаем  символ флага
+        flag_char = flag[2]; 
     }
     else
     {
-        flag_char = flag[1]; // запоминаем символ флага
+        flag_char = flag[1]; 
     }
 
     if (!custom_output)
@@ -243,7 +243,7 @@ int main(int argc, char *argv[])
         }
     }
 
-    // Используем flag_char для выбора функции обработки
+    
     switch (flag_char)
     {
     case 'd':
