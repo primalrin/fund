@@ -7,7 +7,7 @@ double dichotomy(double a, double b, double eps, double (*f)(double))
     if (f(a) * f(b) > 0)
     {
         printf("Error: f(a) and f(b) must have different signs.\n");
-        return -1; // Или другое значение, указывающее на ошибку
+        return -1;
     }
 
     double c;

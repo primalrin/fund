@@ -198,7 +198,7 @@ int concatenate_strings(int argc, char *argv[], char **concatenated_str)
     srand(local_seed);
     int total_length = 0;
     for (int i = 3; i < argc; i++)
-    { // Начинаем с argv[3]
+    {
         int len_res = string_length(argv[i]);
         if (len_res < 0)
         {
@@ -258,8 +258,7 @@ int concatenate_strings(int argc, char *argv[], char **concatenated_str)
     return 0;
 }
 
-// Функция для проверки аргументов командной строки и вызова соответствующей функции
-int process_arguments(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     if (argc < 3)
     {
@@ -337,11 +336,6 @@ int process_arguments(int argc, char *argv[])
 
     free(result_str);
     return 0;
-}
-
-int main(int argc, char *argv[])
-{
-    return process_arguments(argc, argv);
 }
 
 // gcc ex1.c -o ex1

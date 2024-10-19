@@ -38,18 +38,18 @@ int search_substring_in_file(const char *substring, const char *filepath)
 
     int line_number = 1;
     int char_number = 1;
-    char line[1024]; // Буфер для чтения строки из файла
+    char line[1024];
 
     while (fgets(line, sizeof(line), file) != NULL)
     {
         char *line_ptr = line;
-        char_number = 1; // Сброс номера символа для каждой новой строки
+        char_number = 1;
         while (*line_ptr != '\0')
         {
             if (string_compare(substring, line_ptr))
             {
                 printf("Файл: %s, Строка: %d, Символ: %d\n", filepath, line_number, char_number);
-                line_ptr += strlen(substring) - 1; // Сдвиг указателя после нахождения совпадения
+                line_ptr += strlen(substring) - 1;
                 char_number += strlen(substring) - 1;
             }
             line_ptr++;

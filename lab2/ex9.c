@@ -16,7 +16,6 @@ bool is_finite_representation(double number, int base)
         int integer_part = (int)fractional_part;
         fractional_part -= integer_part;
 
-        // Используем более строгую проверку на близость к нулю
         if (fabs(fractional_part) < 1e-15)
         {
             return true;

@@ -36,7 +36,6 @@ char *addInColumn(const char *num1, const char *num2, int base)
     int len2 = strlen(num2);
     int maxLen = (len1 > len2) ? len1 : len2;
 
-    // Выделяем память с учетом возможного переноса
     char *result = (char *)calloc(maxLen + 2, sizeof(char));
     if (!result)
     {
@@ -46,7 +45,6 @@ char *addInColumn(const char *num1, const char *num2, int base)
     int carry = 0;
     int pos1 = len1 - 1, pos2 = len2 - 1, posRes = maxLen;
 
-    // Выполняем сложение справа налево
     while (pos1 >= 0 || pos2 >= 0 || carry)
     {
         int val1 = (pos1 >= 0) ? charToValue(num1[pos1--]) : 0;
@@ -63,7 +61,6 @@ char *addInColumn(const char *num1, const char *num2, int base)
         result[posRes--] = valueToChar(sum % base);
     }
 
-    // Сдвигаем результат влево, если есть лидирующие нули
     if (posRes < maxLen)
     {
         memmove(result, result + posRes + 1, maxLen - posRes);
@@ -74,7 +71,6 @@ char *addInColumn(const char *num1, const char *num2, int base)
         result[maxLen + 1] = '\0';
     }
 
-    // Убираем лидирующие нули, оставляя как минимум одну цифру
     char *trimmed = result;
     while (*trimmed == '0' && *(trimmed + 1) != '\0')
     {

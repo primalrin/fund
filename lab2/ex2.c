@@ -9,7 +9,7 @@ double geometric_mean(int count, ...)
     if (count <= 0)
     {
         fprintf(stderr, "Error: Number of elements must be positive.\n");
-        return -1.0; // Возвращаем отрицательное значение для индикации ошибки
+        return -1.0;
     }
 
     va_list args;
