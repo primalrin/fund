@@ -1,0 +1,15 @@
+
+Tree #1 for expression: A (B (E (G, T, R (W, Z)), F (L, M)), C)
+
+A
+| B
+| |  E
+| |  |  G
+| |  |  T
+| |  |R
+| |  || W
+| |  ||Z
+| |F
+| || L
+| ||M
+|C

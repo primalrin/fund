@@ -1,0 +1,5 @@
+10 Ivan Ivanov 1000.50
+25 Anna Petrova 1200.75
+5  Elena Sidorova 950.20
+12 Petr Sidorov 1100.00
+18 Olga Ivanova 1050.80
