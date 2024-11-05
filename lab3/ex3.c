@@ -14,7 +14,6 @@ typedef struct
     double salary;
 } Employee;
 
-// Вспомогательная функция для проверки, состоит ли строка только из букв
 int is_alpha_string(const char *str)
 {
     while (*str)
@@ -26,40 +25,34 @@ int is_alpha_string(const char *str)
     return 1;
 }
 
-// Функция сравнения для qsort (по возрастанию)
+// Функция для qsort (по возрастанию)
 int compare_asc(const void *a, const void *b)
 {
     const Employee *emp1 = (const Employee *)a;
     const Employee *emp2 = (const Employee *)b;
 
-    // Сравнение по зарплате
     if (emp1->salary < emp2->salary)
         return -1;
     if (emp1->salary > emp2->salary)
         return 1;
 
-    // Если зарплаты равны, сравниваем по фамилии
     int last_name_cmp = strcmp(emp1->last_name, emp2->last_name);
     if (last_name_cmp != 0)
         return last_name_cmp;
 
-    // Если фамилии равны, сравниваем по имени
     int first_name_cmp = strcmp(emp1->first_name, emp2->first_name);
     if (first_name_cmp != 0)
         return first_name_cmp;
 
-    // Если всё равно, сравниваем по id
     return emp1->id - emp2->id;
 }
 
-// Функция сравнения для qsort (по убыванию)
+// Функция для qsort (по убыванию)
 int compare_desc(const void *a, const void *b)
 {
     return -compare_asc(a, b);
 }
 
-// Функция для чтения данных сотрудника из строки
-// Возвращает 0 в случае успеха, 1 в случае ошибки
 int parse_employee_from_string(const char *line, Employee *emp)
 {
     int id;
@@ -68,20 +61,17 @@ int parse_employee_from_string(const char *line, Employee *emp)
     char last_name[MAX_NAME_LENGTH];
     int offset = 0;
 
-    // Чтение id
     if (sscanf(line + offset, "%d%n", &id, &offset) != 1 || id < 0)
     {
         return 1;
     }
 
-    // Чтение имени и фамилии
     int name_len = 0;
     while (line[offset + name_len] && isspace(line[offset + name_len]))
     {
         offset++;
     }
 
-    // Чтение имени до первого пробела или конца строки
     while (line[offset + name_len] && !isspace(line[offset + name_len]) && name_len < MAX_NAME_LENGTH - 1)
     {
         first_name[name_len] = line[offset + name_len];
@@ -90,13 +80,11 @@ int parse_employee_from_string(const char *line, Employee *emp)
     first_name[name_len] = '\0';
     offset += name_len;
 
-    // Пропуск пробелов между именем и фамилией
     while (line[offset] && isspace(line[offset]))
     {
         offset++;
     }
 
-    // Чтение фамилии до конца строки
     name_len = 0;
     while (line[offset + name_len] && !isspace(line[offset + name_len]) && name_len < MAX_NAME_LENGTH - 1)
     {
@@ -106,7 +94,6 @@ int parse_employee_from_string(const char *line, Employee *emp)
     last_name[name_len] = '\0';
     offset += name_len;
 
-    // Чтение зарплаты
     if (sscanf(line + offset, "%lf%n", &salary, &offset) != 1 || salary < 0)
     {
         return 1;
@@ -121,14 +108,12 @@ int parse_employee_from_string(const char *line, Employee *emp)
 
 int main(int argc, char *argv[])
 {
-    // Проверка количества аргументов
     if (argc != 4)
     {
         fprintf(stderr, "Usage: %s input_file -[a|d] output_file\n", argv[0]);
         return 1;
     }
 
-    // Проверка флага
     if ((argv[2][0] != '-' && argv[2][0] != '/') ||
         (argv[2][1] != 'a' && argv[2][1] != 'd') ||
         argv[2][2] != '\0')
@@ -137,7 +122,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Открытие входного файла
     FILE *input = fopen(argv[1], "r");
     if (!input)
     {
@@ -145,16 +129,13 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // Динамический массив сотрудников
     Employee *employees = NULL;
     size_t capacity = 0;
     size_t size = 0;
 
-    // Чтение данных
     char line[MAX_LINE_LENGTH];
     while (fgets(line, sizeof(line), input))
     {
-        // Проверка на переполнение буфера
         if (strchr(line, '\n') == NULL && !feof(input))
         {
             fprintf(stderr, "Error: Line too long in input file\n");
@@ -191,11 +172,9 @@ int main(int argc, char *argv[])
 
     fclose(input);
 
-    // Сортировка
     qsort(employees, size, sizeof(Employee),
           argv[2][1] == 'a' ? compare_asc : compare_desc);
 
-    // Запись результата
     FILE *output = fopen(argv[3], "w");
     if (!output)
     {
@@ -217,3 +196,5 @@ int main(int argc, char *argv[])
     free(employees);
     return 0;
 }
+
+// ./ex3.exe ex3.txt -a out.txt
